@@ -1,115 +1,215 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { useAuthPublic } from '../src/hooks/useAuth';
-import LoginModal from '../src/components/LoginModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { consultarCheckInsActivosPorDni } from '../src/api/ReservaAPI';
-import { CheckinData, DatosReserva } from '../src/types';
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  StatusBar,
+} from 'react-native';
+import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function MainScreen() {
-  const [dniBusqueda, setDniBusqueda] = useState("");
-  const [errorMensaje, setErrorMensaje] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [reservasEncontradas, setReservasEncontradas] = useState<CheckinData[]>([]);
-  const [backdoorClicks, setBackdoorClicks] = useState(0);
-  
-  const {
-    autenticado,
-    setAutenticado,
-    nombre,
-    setNombre,
-    propiedad,
-    setPropiedad,
-    validarReservaVigente,
-  } = useAuthPublic();
+const { width, height } = Dimensions.get('window');
 
-  useEffect(() => {
-    validarReservaVigente();
-  }, []);
-
-  const handleBuscarReserva = async () => {
-    if (!dniBusqueda.trim()) {
-      setErrorMensaje("Ingresa tu número de documento");
-      return;
-    }
-
-    setLoading(true);
-    setErrorMensaje("");
-
-    try {
-      const response = await consultarCheckInsActivosPorDni(dniBusqueda.trim());
+export default function LandingPage() {
+  return (
+    <View className="flex-1 bg-[#f6f0e9]">
+      <StatusBar barStyle="light-content" />
       
-      if (response.status === "not_found" || !response.data || response.data.length === 0) {
-        setErrorMensaje("No encontramos ninguna reserva activa con ese documento");
-        return;
-      }
-
-      const reservas = response.data;
-      setReservasEncontradas(reservas);
-
-      if (reservas.length === 1) {
-        handleSeleccionarCheckIn(reservas[0]);
-      }
-
-    } catch (error: any) {
-      setErrorMensaje(error.message || "Error al buscar reserva");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSeleccionarCheckIn = async (checkin: CheckinData) => {
-    const nuevosDatos: DatosReserva = {
-      nombre: checkin?.name || "",
-      correo: checkin?.email || "",
-      telefono: checkin?.phone || "",
-      propiedad: checkin?.property || "",
-      checkIn: checkin?.checkInDate || "",
-      checkOut: checkin?.checkOutDate || "",
-      dniPasaporte: dniBusqueda || "",
-    };
-
-    try {
-      await AsyncStorage.setItem("datosReserva", JSON.stringify(nuevosDatos));
-      
-      setAutenticado(true);
-      setNombre(nuevosDatos.nombre);
-      setPropiedad(nuevosDatos.propiedad);
-    } catch (error) {
-      Alert.alert("Error", "No se pudieron guardar los datos");
-    }
-  };
-
-  if (autenticado) {
-    return (
-      <View className="flex-1 bg-[#f6f0e9] justify-center items-center p-6">
-        <Text className="text-3xl font-bold text-[#F36C3F] mb-4 text-center">
-          Bienvenido
-        </Text>
-        <Text className="text-xl text-[#17332a] text-center mb-2">
-          {nombre?.split(" ")[0]}
-        </Text>
-        <Text className="text-base text-[#7d6f63] text-center mb-8">
-          {propiedad}
-        </Text>
+      {/* Hero Section */}
+      <View style={{ height: height * 0.6 }} className="relative">
+        <Image
+          source={{ 
+            uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' 
+          }}
+          style={{ width, height: height * 0.6 }}
+          className="absolute inset-0"
+        />
         
-        <Text className="text-lg text-[#17332a] text-center">
-          Login funcionando
+        <LinearGradient
+          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)']}
+          style={{ width, height: height * 0.6 }}
+          className="absolute inset-0"
+        />
+        
+        <View className="absolute inset-0 justify-center items-center px-8">
+          <Text className="text-white text-4xl font-bold text-center mb-4 font-weidemann">
+            Mundo Yanashpa
+          </Text>
+          <Text className="text-white/90 text-lg text-center mb-8 font-humanist">
+            Tu refugio natural en el corazón de la naturaleza
+          </Text>
+          
+          <TouchableOpacity
+            onPress={() => router.push('/login')}
+            className="bg-[#F36C3F] px-8 py-4 rounded-xl"
+          >
+            <Text className="text-white font-bold text-lg font-humanist">
+              Acceso Huéspedes
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Content Section */}
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <View className="px-6 py-8">
+          
+          {/* Welcome Text */}
+          <View className="mb-8">
+            <Text className="text-2xl font-bold text-[#17332a] mb-4 text-center font-weidemann">
+              Bienvenido a tu experiencia
+            </Text>
+            <Text className="text-[#7d6f63] text-base leading-relaxed text-center font-humanist">
+              Descubre un lugar donde la naturaleza y el confort se encuentran. 
+              Mundo Yanashpa te ofrece una experiencia única de descanso y aventura.
+            </Text>
+          </View>
+
+          {/* Services Grid */}
+          <View className="mb-8">
+            <Text className="text-xl font-bold text-[#17332a] mb-6 text-center font-weidemann">
+              Explora nuestros servicios
+            </Text>
+            
+            <View className="space-y-4">
+              {/* Row 1 */}
+              <View className="flex-row space-x-4">
+                <ServiceCard
+                  icon="images-outline"
+                  title="Galería"
+                  subtitle="Explora nuestros espacios"
+                  onPress={() => router.push('/gallery')}
+                />
+                <ServiceCard
+                  icon="location-outline"
+                  title="Contacto"
+                  subtitle="Ubicación y detalles"
+                  onPress={() => router.push('/contact')}
+                />
+              </View>
+              
+              {/* Row 2 */}
+              <View className="flex-row space-x-4">
+                <ServiceCard
+                  icon="calendar-outline"
+                  title="Reservar"
+                  subtitle="Planifica tu estadía"
+                  onPress={() => router.push('/booking')}
+                />
+                <ServiceCard
+                  icon="information-circle-outline"
+                  title="Información"
+                  subtitle="Conoce más del resort"
+                  onPress={() => {}}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Features */}
+          <View className="mb-8">
+            <Text className="text-xl font-bold text-[#17332a] mb-6 text-center font-weidemann">
+              Lo que te espera
+            </Text>
+            
+            <View className="space-y-4">
+              <FeatureItem
+                icon="leaf-outline"
+                title="Conexión con la naturaleza"
+                description="Espacios diseñados para tu descanso y bienestar"
+              />
+              <FeatureItem
+                icon="restaurant-outline"
+                title="Gastronomía local"
+                description="Sabores auténticos con ingredientes frescos"
+              />
+              <FeatureItem
+                icon="bed-outline"
+                title="Alojamiento único"
+                description="Cabañas y casas con todo el confort que necesitas"
+              />
+            </View>
+          </View>
+
+          {/* CTA Section */}
+          <View className="bg-white/60 rounded-2xl p-6 border border-[#e5dfd8]">
+            <Text className="text-lg font-bold text-[#17332a] mb-2 text-center font-weidemann">
+              ¿Ya tienes una reserva?
+            </Text>
+            <Text className="text-[#7d6f63] text-sm mb-4 text-center font-humanist">
+              Accede a servicios exclusivos durante tu estadía
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/login')}
+              className="bg-[#F36C3F] py-3 rounded-xl"
+            >
+              <Text className="text-white font-bold text-center font-humanist">
+                Iniciar Sesión
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+// Service Card Component
+function ServiceCard({ 
+  icon, 
+  title, 
+  subtitle, 
+  onPress 
+}: { 
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      className="flex-1 bg-white/80 rounded-2xl p-4 border border-[#e5dfd8] shadow-sm"
+    >
+      <Ionicons name={icon} size={32} color="#F36C3F" className="mb-3" />
+      <Text className="text-[#17332a] font-bold text-base mb-1 font-humanist">
+        {title}
+      </Text>
+      <Text className="text-[#7d6f63] text-xs font-humanist">
+        {subtitle}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+// Feature Item Component
+function FeatureItem({ 
+  icon, 
+  title, 
+  description 
+}: { 
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+}) {
+  return (
+    <View className="flex-row items-start space-x-4">
+      <View className="w-12 h-12 bg-[#F36C3F]/10 rounded-full items-center justify-center">
+        <Ionicons name={icon} size={24} color="#F36C3F" />
+      </View>
+      <View className="flex-1">
+        <Text className="text-[#17332a] font-bold text-base mb-1 font-humanist">
+          {title}
+        </Text>
+        <Text className="text-[#7d6f63] text-sm font-humanist">
+          {description}
         </Text>
       </View>
-    );
-  }
-
-  return (
-    <LoginModal
-      dniBusqueda={dniBusqueda}
-      setDniBusqueda={setDniBusqueda}
-      errorMensaje={errorMensaje}
-      loading={loading}
-      reservasEncontradas={reservasEncontradas}
-      onBuscarReserva={handleBuscarReserva}
-      onSeleccionarCheckIn={handleSeleccionarCheckIn}
-      setBackdoorClicks={setBackdoorClicks}
-    />
+    </View>
   );
 }
