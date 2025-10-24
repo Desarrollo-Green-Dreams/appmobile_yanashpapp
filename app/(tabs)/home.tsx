@@ -15,6 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthPublic } from '../../src/hooks/useAuth';
 import { DatosReserva } from '../../src/types';
 import ModalSolicitud from '../../src/components/ModalSolicitud';
+import { useNotifications } from '../../src/hooks/useNotifications';
+
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +40,18 @@ export default function HomeDashboard() {
     propiedad,
     validarReservaVigente,
   } = useAuthPublic();
+
+  const {
+    mostrarBadge,
+    setMostrarBadge,
+    solicitudReciente,
+    registrarNotificaciones,
+  } = useNotifications(
+    autenticado,
+    propiedad,
+    nombre,
+    datosReserva.dniPasaporte
+  );
 
   useEffect(() => {
     validarReservaVigente();
@@ -136,13 +150,13 @@ export default function HomeDashboard() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-6">
-          
+
           {/* Servicios Principales */}
           <View className="mb-8">
             <Text className="text-xl font-bold text-[#17332a] mb-4 text-center">
               Solicitar Servicios
             </Text>
-            
+
             <View className="space-y-4">
               {/* Row 1 */}
               <View className="flex-row space-x-4">
@@ -212,7 +226,7 @@ export default function HomeDashboard() {
             <Text className="text-xl font-bold text-[#17332a] mb-4 text-center">
               Explorar Extras
             </Text>
-            
+
             <View className="space-y-4">
               <View className="flex-row space-x-4">
                 <ServiceButton
@@ -262,7 +276,7 @@ export default function HomeDashboard() {
             <Text className="text-xl font-bold text-[#17332a] mb-4 text-center">
               Extender tu estadía
             </Text>
-            
+
             <View className="space-y-4">
               <View className="flex-row space-x-4">
                 <ServiceButton
@@ -395,13 +409,13 @@ export default function HomeDashboard() {
 }
 
 // Service Button Component
-function ServiceButton({ 
-  icon, 
-  title, 
-  subtitle, 
+function ServiceButton({
+  icon,
+  title,
+  subtitle,
   onPress,
   disabled = false
-}: { 
+}: {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
@@ -412,21 +426,19 @@ function ServiceButton({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`flex-1 bg-white/80 rounded-2xl p-4 border border-[#e5dfd8] shadow-sm ${
-        disabled ? 'opacity-50' : ''
-      }`}
+      className={`flex-1 bg-white/80 rounded-2xl p-4 border border-[#e5dfd8] shadow-sm ${disabled ? 'opacity-50' : ''
+        }`}
       style={{ minHeight: 100 }}
     >
       <View className="items-center">
-        <Ionicons 
-          name={icon} 
-          size={28} 
-          color={disabled ? "#7d6f63" : "#F36C3F"} 
+        <Ionicons
+          name={icon}
+          size={28}
+          color={disabled ? "#7d6f63" : "#F36C3F"}
           style={{ marginBottom: 8 }}
         />
-        <Text className={`font-bold text-sm text-center mb-1 ${
-          disabled ? 'text-[#7d6f63]' : 'text-[#17332a]'
-        }`}>
+        <Text className={`font-bold text-sm text-center mb-1 ${disabled ? 'text-[#7d6f63]' : 'text-[#17332a]'
+          }`}>
           {title}
         </Text>
         <Text className="text-[#7d6f63] text-xs text-center">

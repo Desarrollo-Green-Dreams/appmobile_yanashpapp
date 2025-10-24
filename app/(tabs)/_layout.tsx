@@ -30,10 +30,10 @@ export default function TabLayout() {
           title: 'Servicios',
           tabBarIcon: ({ color, focused }) => (
             <View className="items-center">
-              <Ionicons 
-                name={focused ? 'home' : 'home-outline'} 
-                size={24} 
-                color={color} 
+              <Ionicons
+                name={focused ? 'home' : 'home-outline'}
+                size={24}
+                color={color}
               />
             </View>
           ),
@@ -44,13 +44,31 @@ export default function TabLayout() {
         options={{
           title: 'Solicitudes',
           tabBarIcon: ({ color, focused }) => (
-            <View className="items-center">
-              <Ionicons 
-                name={focused ? 'notifications' : 'notifications-outline'} 
-                size={24} 
-                color={color} 
+            <View className="items-center relative">
+              <Ionicons
+                name={focused ? 'notifications' : 'notifications-outline'}
+                size={24}
+                color={color}
               />
-              {/* Badge de notificaciones - lo implementaremos después */}
+              {/* Badge rojo para nuevas notificaciones */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -6,
+                  backgroundColor: '#dc2626',
+                  borderRadius: 8,
+                  width: 16,
+                  height: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  opacity: 0 // Por ahora invisible, se activará con lógica después
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                  !
+                </Text>
+              </View>
             </View>
           ),
         }}
