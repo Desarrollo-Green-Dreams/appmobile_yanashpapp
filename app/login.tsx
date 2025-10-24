@@ -40,7 +40,7 @@ export default function LoginModal() {
 
     try {
       const response = await consultarCheckInsActivosPorDni(dniBusqueda.trim());
-      
+
       if (response.status === "not_found" || !response.data || response.data.length === 0) {
         setErrorMensaje("No encontramos ninguna reserva activa con ese documento");
         return;
@@ -80,7 +80,7 @@ export default function LoginModal() {
 
     try {
       await AsyncStorage.setItem("datosReserva", JSON.stringify(nuevosDatos));
-      
+
       // Navegar a la sección de huéspedes
       router.replace('/(tabs)/home');
     } catch (error) {
@@ -88,18 +88,29 @@ export default function LoginModal() {
     }
   };
 
+  // En login.tsx, función handleAcceptPushNotifications
   const handleAcceptPushNotifications = async () => {
     if (!reservaSeleccionada) return;
 
+    console.log('🚀 Iniciando registro de push notifications...');
+    console.log('📱 Datos para registro:', {
+      propiedad: reservaSeleccionada.property,
+      nombre: reservaSeleccionada.name,
+      dni: dniBusqueda
+    });
+
     try {
-      await registrarNotificacionesPush(
+      const token = await registrarNotificacionesPush(
         reservaSeleccionada.property,
         reservaSeleccionada.name,
         dniBusqueda
       );
-      console.log('Push notifications registradas exitosamente');
+
+      console.log('✅ Push notifications registradas exitosamente');
+      console.log('🎫 Token obtenido:', token);
     } catch (error) {
-      console.log('Error al registrar push notifications, continuando sin ellas:', error);
+      console.error('❌ Error al registrar push notifications:', error);
+      console.error('📋 Detalles del error:', JSON.stringify(error, null, 2));
     }
 
     setMostrarModalPush(false);
@@ -108,7 +119,7 @@ export default function LoginModal() {
 
   const handleSkipPushNotifications = () => {
     if (!reservaSeleccionada) return;
-    
+
     setMostrarModalPush(false);
     handleSeleccionarCheckIn(reservaSeleccionada);
   };
@@ -119,7 +130,7 @@ export default function LoginModal() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-black/20 justify-center items-center px-4"
     >
@@ -134,7 +145,7 @@ export default function LoginModal() {
       </View>
 
       <View className="bg-white rounded-3xl p-7 w-full max-w-[370px] shadow-xl">
-        
+
         <Text className="text-2xl font-bold text-[#F36C3F] text-center mb-6 font-weidemann">
           Acceso Huéspedes
         </Text>
@@ -143,7 +154,7 @@ export default function LoginModal() {
           <Text className="text-sm text-[#F36C3F] font-semibold mb-2 ml-2 font-humanist">
             Nro. Documento
           </Text>
-          
+
           <TextInput
             value={dniBusqueda}
             onChangeText={setDniBusqueda}
@@ -174,9 +185,9 @@ export default function LoginModal() {
         >
           <View className="flex-row items-center justify-center">
             {loading && (
-              <ActivityIndicator 
-                color="white" 
-                size="small" 
+              <ActivityIndicator
+                color="white"
+                size="small"
                 style={{ marginRight: 8 }}
               />
             )}
