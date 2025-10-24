@@ -73,6 +73,22 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="room-service"
+        options={{
+          title: 'Room Service',
+          tabBarIcon: ({ color, focused }) => (
+            <View className="items-center">
+              <Ionicons
+                name={focused ? 'restaurant' : 'restaurant-outline'}
+                size={24}
+                color={color}
+              />
+            </View>
+          ),
+        }}
+      />
     </Tabs>
   );
 }

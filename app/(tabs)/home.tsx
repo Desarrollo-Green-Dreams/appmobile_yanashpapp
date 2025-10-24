@@ -160,20 +160,19 @@ export default function HomeDashboard() {
             <View className="space-y-4">
               {/* Row 1 */}
               <View className="flex-row space-x-4">
-                <ServiceButton
-                  icon="restaurant-outline"
-                  title="Room Service"
-                  subtitle="Pedir comida"
-                  onPress={() => {
-                    if (serviciosDisponibles) {
-                      // TODO: Implementar modal room service
-                      Alert.alert("Room Service", "Funcionalidad en desarrollo");
-                    } else {
-                      Alert.alert("Fuera de horario", "Servicios disponibles de 9:00 AM a 9:00 PM");
-                    }
-                  }}
-                  disabled={!serviciosDisponibles}
-                />
+               <ServiceButton
+  icon="restaurant-outline"
+  title="Room Service"
+  subtitle="Pedir comida"
+  onPress={() => {
+    if (serviciosDisponibles) {
+      router.push('/room-service'); // ← Navegar a la pantalla
+    } else {
+      Alert.alert("Fuera de horario", "Servicios disponibles de 9:00 AM a 9:00 PM");
+    }
+  }}
+  disabled={!serviciosDisponibles}
+/>
                 <ServiceButton
                   icon="car-outline"
                   title="Movilidad"
