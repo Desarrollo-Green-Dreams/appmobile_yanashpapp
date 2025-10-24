@@ -1,28 +1,19 @@
 {
   "expo": {
-    "name": "yanashpa-mobile",
-    "slug": "yanashpa-mobile",
+    "name": "YanashpaApp",
+    "slug": "yanashpa-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "package": "com.yanashpa.mobile"
-    },
-    "web": {
-    },
     "plugins": [
-      "expo-router"
+      "expo-notifications"
     ],
-    "scheme": "yanashpa",
+    "android": {
+      "package": "com.juliotornero.yanashpaapp"
+    },
     "extra": {
-      "router": {
-        "origin": false
+      "eas": {
+        "projectId": "88489740-8f47-496d-b45e-b0ea07b1fdc1"
       }
     }
   }

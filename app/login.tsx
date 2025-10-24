@@ -14,15 +14,20 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Device from 'expo-device';
 
 import { consultarCheckInsActivosPorDni } from '../src/api/ReservaAPI';
 import { CheckinData, DatosReserva } from '../src/types';
+import { registrarNotificacionesPush } from '../src/lib/pushNotifications';
+import PushNotificationModal from '../src/components/PushNotificationModal';
 
 export default function LoginModal() {
   const [dniBusqueda, setDniBusqueda] = useState("");
   const [errorMensaje, setErrorMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const [reservasEncontradas, setReservasEncontradas] = useState<CheckinData[]>([]);
+  const [mostrarModalPush, setMostrarModalPush] = useState(false);
+  const [reservaSeleccionada, setReservaSeleccionada] = useState<CheckinData | null>(null);
 
   const handleBuscarReserva = async () => {
     if (!dniBusqueda.trim()) {
@@ -45,7 +50,14 @@ export default function LoginModal() {
       setReservasEncontradas(reservas);
 
       if (reservas.length === 1) {
-        handleSeleccionarCheckIn(reservas[0]);
+        // Si es dispositivo físico, mostrar modal de push notifications
+        if (Device.isDevice) {
+          setReservaSeleccionada(reservas[0]);
+          setMostrarModalPush(true);
+        } else {
+          // En simulador, ir directo al login
+          handleSeleccionarCheckIn(reservas[0]);
+        }
       }
 
     } catch (error: any) {
@@ -74,6 +86,31 @@ export default function LoginModal() {
     } catch (error) {
       Alert.alert("Error", "No se pudieron guardar los datos");
     }
+  };
+
+  const handleAcceptPushNotifications = async () => {
+    if (!reservaSeleccionada) return;
+
+    try {
+      await registrarNotificacionesPush(
+        reservaSeleccionada.property,
+        reservaSeleccionada.name,
+        dniBusqueda
+      );
+      console.log('Push notifications registradas exitosamente');
+    } catch (error) {
+      console.log('Error al registrar push notifications, continuando sin ellas:', error);
+    }
+
+    setMostrarModalPush(false);
+    handleSeleccionarCheckIn(reservaSeleccionada);
+  };
+
+  const handleSkipPushNotifications = () => {
+    if (!reservaSeleccionada) return;
+    
+    setMostrarModalPush(false);
+    handleSeleccionarCheckIn(reservaSeleccionada);
   };
 
   const openWhatsApp = (number: string, message: string) => {
@@ -159,7 +196,14 @@ export default function LoginModal() {
               {reservasEncontradas.map((checkin, idx) => (
                 <TouchableOpacity
                   key={idx}
-                  onPress={() => handleSeleccionarCheckIn(checkin)}
+                  onPress={() => {
+                    if (Device.isDevice) {
+                      setReservaSeleccionada(checkin);
+                      setMostrarModalPush(true);
+                    } else {
+                      handleSeleccionarCheckIn(checkin);
+                    }
+                  }}
                   className="w-full border border-[#e8e0d6] bg-white/80 rounded-2xl px-4 py-3 shadow-sm mb-3"
                 >
                   <Text className="text-base font-semibold text-[#17332a] font-humanist">
@@ -188,6 +232,14 @@ export default function LoginModal() {
         </View>
 
       </View>
+
+      {/* Modal de Push Notifications */}
+      <PushNotificationModal
+        visible={mostrarModalPush}
+        onAccept={handleAcceptPushNotifications}
+        onSkip={handleSkipPushNotifications}
+        onClose={() => setMostrarModalPush(false)}
+      />
     </KeyboardAvoidingView>
   );
 }

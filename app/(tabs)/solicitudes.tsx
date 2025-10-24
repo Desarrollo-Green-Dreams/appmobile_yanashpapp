@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from '@react-navigation/native';
+import { io, Socket } from 'socket.io-client';
 
 import { obtenerSolicitudes, actualizarSolicitud } from "../../src/api/SolicitudesAPI";
 
@@ -33,11 +35,111 @@ export default function SolicitudesScreen() {
   const [verAtendidas, setVerAtendidas] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [datosReserva, setDatosReserva] = useState<any>({});
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     loadDatosReserva();
-    fetchSolicitudes();
   }, []);
+
+  // Cargar solicitudes cuando se cargan los datos de reserva
+  useEffect(() => {
+    if (datosReserva.propiedad && datosReserva.nombre) {
+      fetchSolicitudes();
+    }
+  }, [datosReserva.propiedad, datosReserva.nombre]);
+
+  // Configurar Socket.io
+  useEffect(() => {
+    if (!datosReserva.propiedad) return;
+
+    console.log('Conectando socket para propiedad:', datosReserva.propiedad);
+    
+    // Usar la variable de entorno que ya configuraste
+    const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL;
+    
+    console.log('Conectando a:', socketUrl);
+    
+    // Crear conexión socket con configuración para React Native
+    const newSocket = io(socketUrl, {
+      query: { propiedad: datosReserva.propiedad },
+      transports: ['polling', 'websocket'], // polling primero para RN
+      timeout: 20000,
+      forceNew: true,
+      autoConnect: true
+    });
+
+    // Listeners de eventos
+    newSocket.on('connect', () => {
+      console.log('Socket conectado:', newSocket.id);
+      console.log('Conectado a room de propiedad:', datosReserva.propiedad);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('Socket desconectado. Razón:', reason);
+    });
+
+    newSocket.on('nueva-solicitud', (nueva: Solicitud) => {
+      console.log('Nueva solicitud recibida via socket:', nueva);
+      if (nueva.nombre === datosReserva?.nombre && nueva.propiedad === datosReserva?.propiedad) {
+        setSolicitudes((prev) => {
+          // Evitar duplicados
+          const existe = prev.find(s => s._id === nueva._id);
+          if (existe) {
+            console.log('Solicitud ya existe, no agregando duplicado');
+            return prev;
+          }
+          console.log('Agregando nueva solicitud a la lista');
+          return [nueva, ...prev];
+        });
+      }
+    });
+
+    newSocket.on('solicitud-actualizada', (actualizada: Solicitud) => {
+      console.log('Solicitud actualizada via socket:', actualizada);
+      if (actualizada.nombre === datosReserva?.nombre && actualizada.propiedad === datosReserva?.propiedad) {
+        setSolicitudes((prev) => {
+          const updated = prev.map((s) => (s._id === actualizada._id ? { ...s, ...actualizada } : s));
+          console.log('Lista de solicitudes actualizada');
+          return updated;
+        });
+      } else {
+        console.log('Solicitud actualizada no es para este usuario');
+      }
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Error de conexión socket:', error.message);
+      console.error('Detalles del error:', error);
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('Error en socket:', error);
+    });
+
+    setSocket(newSocket);
+
+    // Cleanup al desmontar
+    return () => {
+      console.log('Desconectando socket');
+      newSocket.disconnect();
+      setSocket(null);
+    };
+  }, [datosReserva.propiedad, datosReserva.nombre]);
+
+  // Cleanup al salir de la pantalla
+  useFocusEffect(
+    React.useCallback(() => {
+      // Al entrar en focus, recargar solicitudes
+      if (datosReserva.propiedad && datosReserva.nombre) {
+        fetchSolicitudes();
+      }
+
+      // Al salir de focus, no hacer nada especial
+      return () => {
+        // Mantener el socket activo
+      };
+    }, [datosReserva.propiedad, datosReserva.nombre])
+  );
 
   const loadDatosReserva = async () => {
     try {
@@ -52,11 +154,17 @@ export default function SolicitudesScreen() {
 
   const fetchSolicitudes = async () => {
     try {
+      console.log('Fetching solicitudes for:', datosReserva.propiedad, datosReserva.nombre);
+      
       const todas = await obtenerSolicitudes();
+      console.log('Total solicitudes received:', todas.length);
+      
       const filtradas = todas.filter(
         (s: Solicitud) =>
           s.propiedad === datosReserva?.propiedad && s.nombre === datosReserva?.nombre
       );
+      
+      console.log('Filtered solicitudes:', filtradas.length);
       setSolicitudes(filtradas);
     } catch (error) {
       console.error('Error fetching solicitudes:', error);

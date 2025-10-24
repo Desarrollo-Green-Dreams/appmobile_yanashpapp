@@ -377,7 +377,17 @@ export default function HomeDashboard() {
         tipo={modalSolicitud}
         onClose={() => setModalSolicitud(null)}
         onSuccess={() => {
-          Alert.alert("Éxito", "Tu solicitud ha sido enviada y será atendida pronto.");
+          setModalSolicitud(null);
+          Alert.alert("Éxito", "Tu solicitud ha sido enviada y será atendida pronto.", [
+            {
+              text: "Ver mis solicitudes",
+              onPress: () => router.push('/(tabs)/solicitudes')
+            },
+            {
+              text: "OK",
+              style: "cancel"
+            }
+          ]);
         }}
       />
     </View>
