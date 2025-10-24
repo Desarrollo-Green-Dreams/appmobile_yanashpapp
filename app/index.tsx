@@ -69,6 +69,7 @@ export default function LandingPage() {
             </Text>
           </View>
 
+
           {/* Services Grid */}
           <View className="mb-8">
             <Text className="text-xl font-bold text-[#17332a] mb-6 text-center font-weidemann">
